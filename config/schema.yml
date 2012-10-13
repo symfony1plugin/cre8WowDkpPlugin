@@ -1,0 +1,74 @@
+connection:           propel
+defaultIdMethod:      native
+package:              plugins.cre8WowDkpPlugin.lib.model
+
+classes:
+
+  Dkp:
+    columns:
+      id:                ~
+      name:              { type: varchar(128), required: true, primaryString: true }
+      wow_guild_id:      { type: integer, foreignClass: WowGuild, foreignReference: id, required: true, onDelete: cascade }
+
+  DkpActivity:
+    columns:
+      id:                ~
+      dkp_id:            { type: integer, primaryKey: true, foreignClass: Dkp, foreignReference: id, required: true, onDelete: cascade }
+      name:              { type: varchar(128), required: true, primaryString: true }
+  
+  DkpWowGuildMember:
+    propel_behaviors:
+      symfony:
+        form:   false
+        filter: false
+    columns:
+      dkp_id:               { type: integer, primaryKey: true, foreignClass: Dkp, foreignReference: id, required: true, onDelete: cascade }
+      wow_guild_member_id:  { type: integer, primaryKey: true, foreignClass: WowGuildMember, foreignReference: id, required: true, onDelete: cascade }
+
+  DkpRaid:
+    propel_behaviors:
+      timestampable:        ~
+      sortable:
+        use_scope:          true
+        scope_column:       dkp_id
+    columns:
+      id:                   ~
+      dkp_id:               { type: integer, foreignClass: Dkp, foreignReference: id, required: true, onDelete: cascade }
+      raid_date:            { type: date, required: true, primaryString: true }
+      is_archived:          { type: boolean, default: 0 }
+
+  DkpRaidWowGuildMember:
+    propel_behaviors:
+      sortable:
+        use_scope:          true
+        scope_column:       dkp_raid_id
+    columns:
+      id:                   ~
+      dkp_raid_id:          { type: integer, foreignClass: DkpRaid, foreignReference: id, required: true, onDelete: cascade }
+      wow_guild_member_id:  { type: integer, foreignClass: WowGuildMember, foreignReference: id, onDelete: SETNULL }
+      display_name:         { type: varchar(40), required: true, primaryString: true }
+
+  DkpRaidActivity:
+    columns:
+      id:                           ~
+      dkp_raid_wow_guild_member_id: { type: integer, foreignClass: DkpRaidWowGuildMember, foreignReference: id, required: true, onDelete: cascade }
+      dkp_activity_id:              { type: integer, foreignClass: DkpActivity, foreignReference: id, required: true, onDelete: cascade }
+      value:                        { type: integer, required: true }
+  
+  DkpRaidCreature:
+    columns:
+      id:                         ~
+      dkp_raid_id:                { type: integer, foreignClass: DkpRaid, foreignReference: id, required: true, onDelete: cascade }
+      wow_instance_id:            { type: integer, foreignClass: WowInstance, foreignReference: id, required: true, onDelete: cascade }
+      wow_instance_difficulty_id: { type: integer, foreignClass: WowInstanceDifficulty, foreignReference: id, required: true, onDelete: cascade }
+      wow_instance_creature_id:   { type: integer, foreignClass: WowInstanceCreature, foreignReference: id, required: true, onDelete: cascade }
+      wipes:                      { type: integer, defaultValue: 0 }
+      has_died:                   { type: boolean, defaultValue: 0 }
+
+  DkpRaidLoot:
+    columns:
+      id:                           ~
+      dkp_raid_creature_id:         { type: integer, foreignClass: DkpRaidCreature, foreignReference: id, required: true, onDelete: cascade }
+      wow_item_id:                  { type: integer, foreignClass: WowItem, foreignReference: id, required: true, onDelete: cascade }
+      dkp_raid_wow_guild_member_id: { type: integer, foreignClass: DkpRaidWowGuildMember, foreignReference: id, onDelete: cascade }
+      cost:                         { type: integer, required: true }
